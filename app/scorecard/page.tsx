@@ -5,7 +5,7 @@ const BG = 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=fo
 
 type PastWeek = {
   range: string; dms: number; posts: number; sleep: string;
-  study: string; cmts: number; savings: string; pct: number
+  cmts: number; savings: string; pct: number
 }
 type Metric = { label: string; value: number; target: number; unit: string }
 
@@ -14,7 +14,6 @@ const DEFAULT_METRICS: Metric[] = [
   { label: 'Posts Published', value: 0, target: 3, unit: '' },
   { label: 'Comments Logged', value: 0, target: 50, unit: '' },
   { label: 'Avg Sleep', value: 0, target: 7, unit: 'h' },
-  { label: 'Study Minutes', value: 0, target: 315, unit: 'm' },
   { label: 'Habit Rate', value: 0, target: 100, unit: '%' },
   { label: 'Deep Work Hours', value: 0, target: 25, unit: 'h' },
   { label: 'Days Fajr on Time', value: 0, target: 7, unit: '' },
@@ -31,7 +30,7 @@ export default function Scorecard() {
     try { return JSON.parse(localStorage.getItem('bl-scorecard-pastweeks') || '[]') } catch { return [] }
   })
   const [showLogWeek, setShowLogWeek] = useState(false)
-  const [newWeek, setNewWeek] = useState({ range: '', dms: '', posts: '', sleep: '', study: '', cmts: '', savings: '', pct: '' })
+  const [newWeek, setNewWeek] = useState({ range: '', dms: '', posts: '', sleep: '', cmts: '', savings: '', pct: '' })
 
   // Current week metrics (user fills in manually)
   const [metrics, setMetrics] = useState<Metric[]>(() => {
@@ -55,13 +54,12 @@ export default function Scorecard() {
       dms: Number(newWeek.dms) || 0,
       posts: Number(newWeek.posts) || 0,
       sleep: newWeek.sleep || '0h',
-      study: newWeek.study || '0m',
       cmts: Number(newWeek.cmts) || 0,
       savings: newWeek.savings || 'PKR 0',
       pct: Number(newWeek.pct) || 0,
     }
     setPastWeeks(p => [week, ...p])
-    setNewWeek({ range: '', dms: '', posts: '', sleep: '', study: '', cmts: '', savings: '', pct: '' })
+    setNewWeek({ range: '', dms: '', posts: '', sleep: '', cmts: '', savings: '', pct: '' })
     setShowLogWeek(false)
   }
 
@@ -167,7 +165,6 @@ export default function Scorecard() {
                 <input placeholder="DMs sent" type="number" className="input-dark" value={newWeek.dms} onChange={e => setNewWeek(p => ({ ...p, dms: e.target.value }))} />
                 <input placeholder="Posts published" type="number" className="input-dark" value={newWeek.posts} onChange={e => setNewWeek(p => ({ ...p, posts: e.target.value }))} />
                 <input placeholder="Avg sleep (e.g. 6.5h)" className="input-dark" value={newWeek.sleep} onChange={e => setNewWeek(p => ({ ...p, sleep: e.target.value }))} />
-                <input placeholder="Study time (e.g. 120m)" className="input-dark" value={newWeek.study} onChange={e => setNewWeek(p => ({ ...p, study: e.target.value }))} />
                 <input placeholder="Comments logged" type="number" className="input-dark" value={newWeek.cmts} onChange={e => setNewWeek(p => ({ ...p, cmts: e.target.value }))} />
                 <input placeholder="Savings (e.g. PKR 5,000)" className="input-dark" value={newWeek.savings} onChange={e => setNewWeek(p => ({ ...p, savings: e.target.value }))} />
               </div>
@@ -197,7 +194,6 @@ export default function Scorecard() {
                     { label: 'DMS', value: w.dms },
                     { label: 'POSTS', value: w.posts },
                     { label: 'SLEEP', value: w.sleep },
-                    { label: 'STUDY', value: w.study },
                     { label: 'CMTS', value: w.cmts },
                     { label: 'SAVINGS', value: w.savings },
                   ].map((s, j) => (

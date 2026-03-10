@@ -8,7 +8,6 @@ const DEFAULT_CATS: Category[] = [
   { id: 'focus', name: 'Focus', color: '#f26419' },
   { id: 'meeting', name: 'Meeting', color: '#7a8fbc' },
   { id: 'exercise', name: 'Exercise', color: '#c0504d' },
-  { id: 'study', name: 'Study', color: '#9b7fd4' },
   { id: 'outreach', name: 'Outreach', color: '#5d9c70' },
   { id: 'content', name: 'Content Creation', color: '#c4a842' },
   { id: 'finance', name: 'Finance', color: '#8a8a94' },
