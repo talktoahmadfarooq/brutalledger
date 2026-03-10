@@ -88,6 +88,17 @@ export default function Tasks() {
     setActiveTaskId(id === activeTaskId ? null : id)
   }
 
+  const deleteTask = (id: string) => {
+    setTasks(prev => prev.filter(t => t.id !== id))
+    if (activeTaskId === id) setActiveTaskId(null)
+  }
+
+  const deleteProject = (id: string) => {
+    setProjects(prev => prev.filter(p => p.id !== id))
+    setTasks(prev => prev.filter(t => t.projectId !== id))
+    if (projectFilter === id) setProjectFilter('all')
+  }
+
   const completeTask = (id: string) => {
     // If task is running, stop timer first
     const now = Date.now()
@@ -232,13 +243,16 @@ export default function Tasks() {
                   fontSize: '0.65rem', cursor: 'pointer',
                 }}>All</button>
                 {projects.map(pr => (
-                  <button key={pr.id} onClick={() => setProjectFilter(pr.id)} style={{
-                    padding: '0.3rem 0.75rem', borderRadius: '5px', border: '1px solid',
-                    borderColor: projectFilter === pr.id ? `${pr.color}55` : 'var(--color-border-subtle)',
-                    background: projectFilter === pr.id ? `${pr.color}11` : 'transparent',
-                    color: projectFilter === pr.id ? pr.color : 'var(--color-text-placeholder)',
-                    fontSize: '0.65rem', cursor: 'pointer',
-                  }}>● {pr.name}</button>
+                  <div key={pr.id} style={{ display: 'flex', alignItems: 'center', gap: '0.2rem' }}>
+                    <button onClick={() => setProjectFilter(pr.id)} style={{
+                      padding: '0.3rem 0.75rem', borderRadius: '5px', border: '1px solid',
+                      borderColor: projectFilter === pr.id ? `${pr.color}55` : 'var(--color-border-subtle)',
+                      background: projectFilter === pr.id ? `${pr.color}11` : 'transparent',
+                      color: projectFilter === pr.id ? pr.color : 'var(--color-text-placeholder)',
+                      fontSize: '0.65rem', cursor: 'pointer',
+                    }}>● {pr.name}</button>
+                    <button onClick={() => deleteProject(pr.id)} style={{ background: 'transparent', border: 'none', color: 'var(--color-text-placeholder)', cursor: 'pointer', fontSize: '0.75rem', padding: '0.1rem 0.2rem', lineHeight: 1 }} title="Delete project">×</button>
+                  </div>
                 ))}
               </div>
             )}
@@ -277,6 +291,7 @@ export default function Tasks() {
                         {task.estimatedMins > 0 && <span style={{ fontSize: '0.65rem', color: 'var(--color-text-placeholder)' }}>/ {task.estimatedMins}m est.</span>}
                       </div>
                     </div>
+                    <button onClick={() => deleteTask(task.id)} style={{ background: 'transparent', border: 'none', color: 'var(--color-text-placeholder)', cursor: 'pointer', fontSize: '0.8rem', padding: '0.25rem', flexShrink: 0 }} title="Delete task">×</button>
                     {task.status !== 'completed' && (
                       <button onClick={() => toggleTimer(task.id)} style={{
                         padding: '0.3rem 0.625rem', borderRadius: '4px', border: '1px solid',

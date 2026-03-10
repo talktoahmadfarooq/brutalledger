@@ -87,6 +87,10 @@ export default function Calendar() {
     setCategories(p => p.filter(c => c.id !== id))
   }
 
+  const deleteBlock = (id: string) => {
+    setBlocks(p => p.filter(b => b.id !== id))
+  }
+
   const getBlocksForSlot = (date: string, hour: number) => {
     return blocks.filter(b => {
       if (b.date !== date) return false
@@ -202,8 +206,11 @@ export default function Calendar() {
                         {slotBlocks.map(b => {
                           const cat = getCat(b.categoryId)
                           return (
-                            <div key={b.id} onClick={e => e.stopPropagation()} style={{ background: `${cat.color}22`, border: `1px solid ${cat.color}44`, borderRadius: '3px', padding: '2px 4px', marginBottom: '1px' }}>
-                              <div style={{ fontSize: '0.6rem', color: cat.color, fontWeight: '500', overflow: 'hidden', whiteSpace: 'nowrap' as const, textOverflow: 'ellipsis' }}>{b.title}</div>
+                            <div key={b.id} onClick={e => e.stopPropagation()} style={{ background: `${cat.color}22`, border: `1px solid ${cat.color}44`, borderRadius: '3px', padding: '2px 4px', marginBottom: '1px', position: 'relative' }}>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                                <div style={{ fontSize: '0.6rem', color: cat.color, fontWeight: '500', overflow: 'hidden', whiteSpace: 'nowrap' as const, textOverflow: 'ellipsis', flex: 1 }}>{b.title}</div>
+                                <button onClick={e => { e.stopPropagation(); deleteBlock(b.id) }} style={{ background: 'transparent', border: 'none', color: cat.color, cursor: 'pointer', fontSize: '0.7rem', padding: '0 0 0 2px', lineHeight: 1, opacity: 0.7, flexShrink: 0 }}>×</button>
+                              </div>
                               <div style={{ fontSize: '0.55rem', color: 'var(--color-text-dim)' }}>{b.start} to {b.end}</div>
                             </div>
                           )

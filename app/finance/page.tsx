@@ -61,6 +61,10 @@ export default function Finance() {
     setNewSav({ amount: '', dir: 'in', reason: '' })
   }
 
+  const deleteExpense = (id: string) => setExpenses(p => p.filter(e => e.id !== id))
+  const deleteIncome = (id: string) => setIncomes(p => p.filter(i => i.id !== id))
+  const deleteSavings = (id: string) => setSavings(p => p.filter(s => s.id !== id))
+
   const addCategory = () => {
     if (!newCat.name.trim()) return
     setExpCategories(p => [...p, { id: Date.now().toString(), name: newCat.name.trim(), color: newCat.color }])
@@ -160,12 +164,15 @@ export default function Finance() {
                   expenses.filter(e => e.date === today).map(e => {
                     const cat = getCat(e.category)
                     return (
-                      <div key={e.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '0.4rem 0', borderBottom: '1px solid var(--color-border-subtle)' }}>
+                      <div key={e.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.4rem 0', borderBottom: '1px solid var(--color-border-subtle)' }}>
                         <div style={{ display: 'flex', gap: '0.625rem', alignItems: 'center' }}>
                           <span style={{ fontSize: '0.65rem', background: `${cat.color}22`, color: cat.color, border: `1px solid ${cat.color}33`, borderRadius: '3px', padding: '0.15rem 0.4rem' }}>{cat.name}</span>
                           <span style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>{e.note || 'No note'}</span>
                         </div>
-                        <span style={{ fontSize: '0.8rem', color: 'var(--color-text)', fontVariantNumeric: 'tabular-nums' }}>PKR {e.amount.toLocaleString()}</span>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                          <span style={{ fontSize: '0.8rem', color: 'var(--color-text)', fontVariantNumeric: 'tabular-nums' }}>PKR {e.amount.toLocaleString()}</span>
+                          <button onClick={() => deleteExpense(e.id)} style={{ background: 'transparent', border: 'none', color: 'var(--color-text-placeholder)', cursor: 'pointer', fontSize: '0.85rem', padding: '0 0.2rem', lineHeight: 1 }}>×</button>
+                        </div>
                       </div>
                     )
                   })
@@ -221,7 +228,10 @@ export default function Finance() {
                         </div>
                         <div style={{ fontSize: '0.65rem', color: 'var(--color-text-placeholder)' }}>{i.date}</div>
                       </div>
-                      <div style={{ fontFamily: 'var(--font-playfair)', fontSize: '1rem', color: '#5d9c70' }}>+PKR {i.amount.toLocaleString()}</div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                        <div style={{ fontFamily: 'var(--font-playfair)', fontSize: '1rem', color: '#5d9c70' }}>+PKR {i.amount.toLocaleString()}</div>
+                        <button onClick={() => deleteIncome(i.id)} style={{ background: 'transparent', border: 'none', color: 'var(--color-text-placeholder)', cursor: 'pointer', fontSize: '0.85rem', padding: '0 0.2rem', lineHeight: 1 }}>×</button>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -270,8 +280,11 @@ export default function Finance() {
                       <div style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>{op.reason || (op.dir === 'in' ? 'Savings deposit' : 'Withdrawal')}</div>
                       <div style={{ fontSize: '0.65rem', color: 'var(--color-text-placeholder)', marginTop: '0.2rem' }}>{op.date}</div>
                     </div>
-                    <div style={{ fontFamily: 'var(--font-playfair)', fontSize: '1rem', color: op.dir === 'in' ? '#5d9c70' : '#c0504d' }}>
-                      {op.dir === 'in' ? '+' : '-'}PKR {op.amount.toLocaleString()}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                      <div style={{ fontFamily: 'var(--font-playfair)', fontSize: '1rem', color: op.dir === 'in' ? '#5d9c70' : '#c0504d' }}>
+                        {op.dir === 'in' ? '+' : '-'}PKR {op.amount.toLocaleString()}
+                      </div>
+                      <button onClick={() => deleteSavings(op.id)} style={{ background: 'transparent', border: 'none', color: 'var(--color-text-placeholder)', cursor: 'pointer', fontSize: '0.85rem', padding: '0 0.2rem', lineHeight: 1 }}>×</button>
                     </div>
                   </div>
                 ))

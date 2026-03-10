@@ -55,6 +55,13 @@ export default function Content() {
     setShowAddKB(false)
   }
 
+  const deletePost = (id: string) => {
+    setPosts(p => p.filter(post => post.id !== id))
+    setKbEntries(p => p.filter(e => e.id !== `post_${id}`))
+  }
+
+  const deleteKBEntry = (id: string) => setKbEntries(p => p.filter(e => e.id !== id))
+
   const avgD7 = posts.length ? Math.round(posts.reduce((s, p) => s + p.d7, 0) / posts.length) : 0
   const avgD30 = posts.length ? Math.round(posts.reduce((s, p) => s + p.d30, 0) / posts.length) : 0
   const bestPost = posts.length ? posts.reduce((a, b) => a.d30 > b.d30 ? a : b) : null
@@ -155,7 +162,7 @@ export default function Content() {
                   <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                     <thead>
                       <tr style={{ borderBottom: '1px solid var(--color-border-subtle)' }}>
-                        {['Date', 'Topic', 'Pillar', 'Format', 'D7', 'D30', 'Cmts', 'CTA'].map(h => (
+                        {['Date', 'Topic', 'Pillar', 'Format', 'D7', 'D30', 'Cmts', 'CTA', ''].map(h => (
                           <th key={h} style={{ padding: '0.625rem 0.875rem', textAlign: 'left' as const, fontSize: '0.6rem', color: 'var(--color-text-placeholder)', letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: '500' }}>{h}</th>
                         ))}
                       </tr>
@@ -173,6 +180,9 @@ export default function Content() {
                           <td style={{ padding: '0.625rem 0.875rem', fontSize: '0.78rem', color: p.d30 > 10000 ? '#5d9c70' : 'var(--color-text-muted)', fontVariantNumeric: 'tabular-nums' }}>{p.d30.toLocaleString()}</td>
                           <td style={{ padding: '0.625rem 0.875rem', fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>{p.comments}</td>
                           <td style={{ padding: '0.625rem 0.875rem', fontSize: '0.72rem', color: 'var(--color-text-dim)' }}>{p.cta || 'None'}</td>
+                          <td style={{ padding: '0.625rem 0.5rem' }}>
+                            <button onClick={() => deletePost(p.id)} style={{ background: 'transparent', border: 'none', color: 'var(--color-text-placeholder)', cursor: 'pointer', fontSize: '0.85rem', padding: '0.1rem 0.3rem', lineHeight: 1 }}>×</button>
+                          </td>
                         </tr>
                       ))}
                     </tbody>
@@ -234,7 +244,10 @@ export default function Content() {
                           {entry.source === 'post_log' && <span className="badge badge-yellow" style={{ fontSize: '0.5rem' }}>Post Log</span>}
                           <span style={{ fontSize: '0.88rem', color: 'var(--color-text-secondary)', fontWeight: '500' }}>{entry.title}</span>
                         </div>
-                        <span style={{ fontSize: '0.65rem', color: 'var(--color-text-placeholder)' }}>{entry.date}</span>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                          <span style={{ fontSize: '0.65rem', color: 'var(--color-text-placeholder)' }}>{entry.date}</span>
+                          <button onClick={() => deleteKBEntry(entry.id)} style={{ background: 'transparent', border: 'none', color: 'var(--color-text-placeholder)', cursor: 'pointer', fontSize: '0.85rem', padding: '0 0.2rem', lineHeight: 1 }}>×</button>
+                        </div>
                       </div>
                       <p style={{ fontSize: '0.8rem', color: 'var(--color-text-dim)', lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>{entry.body}</p>
                     </div>

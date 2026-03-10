@@ -53,6 +53,10 @@ export default function Outreach() {
     }))
   }
 
+  const deleteProspect = (id: string) => {
+    setProspects(prev => prev.filter(p => p.id !== id))
+  }
+
   const logComment = (id: string) => {
     setProspects(prev => prev.map(p =>
       p.id === id ? { ...p, commentCount: p.commentCount + 1 } : p
@@ -168,6 +172,7 @@ export default function Outreach() {
                     </div>
 
                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '0.5rem', flexShrink: 0 }}>
+                      <button onClick={() => deleteProspect(p.id)} style={{ background: '#8b3a3a15', border: '1px solid #8b3a3a33', color: '#c0504d', borderRadius: '4px', padding: '0.2rem 0.5rem', fontSize: '0.65rem', cursor: 'pointer', letterSpacing: '0.04em', alignSelf: 'flex-end' }}>Delete</button>
                       <select
                         value={p.status}
                         onChange={e => updateStatus(p.id, e.target.value as Status)}

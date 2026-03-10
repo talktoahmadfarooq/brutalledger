@@ -56,8 +56,8 @@ export default function Pomodoro() {
   return (
     <div className="page-enter" style={{ maxWidth: '700px', margin: '0 auto', padding: '2.5rem 2rem 4rem' }}>
       <div style={{ marginBottom: '2rem' }}>
-        <h1 style={{ fontFamily: 'var(--font-playfair)', fontSize: '2.25rem', fontWeight: '700', color: '#f5f0e8' }}>Pomodoro</h1>
-        <p style={{ fontSize: '0.78rem', color: '#38383f', marginTop: '0.25rem' }}>Focus timer — work in sessions</p>
+        <h1 style={{ fontFamily: 'var(--font-playfair)', fontSize: '2.25rem', fontWeight: '700', color: 'var(--color-text)' }}>Pomodoro</h1>
+        <p style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)', marginTop: '0.25rem' }}>Focus timer — work in sessions</p>
       </div>
 
       {/* Mode selector */}
@@ -65,13 +65,13 @@ export default function Pomodoro() {
         {MODES.map((m, i) => (
           <button key={i} onClick={() => { setMode(i); setIsBreak(false); setTimeLeft(m.work); setRunning(false) }} style={{
             padding: '1rem', borderRadius: '8px', border: '1px solid',
-            borderColor: mode === i ? '#c9a96e55' : '#1a1a1d',
-            background: mode === i ? '#c9a96e0d' : '#111113',
+            borderColor: mode === i ? '#c9a96e55' : 'var(--color-border-subtle)',
+            background: mode === i ? '#c9a96e11' : 'var(--color-card)',
             cursor: 'pointer', textAlign: 'left' as const,
           }}>
-            <div style={{ fontSize: '0.6rem', color: mode === i ? '#c9a96e' : '#38383f', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '0.25rem' }}>{m.name}</div>
-            <div style={{ fontFamily: 'var(--font-playfair)', fontSize: '1.1rem', fontWeight: '600', color: mode === i ? '#f5f0e8' : '#55555f' }}>{m.label}</div>
-            <div style={{ fontSize: '0.65rem', color: '#38383f', marginTop: '0.2rem' }}>min work / break</div>
+            <div style={{ fontSize: '0.6rem', color: mode === i ? '#c9a96e' : 'var(--color-text-placeholder)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '0.25rem' }}>{m.name}</div>
+            <div style={{ fontFamily: 'var(--font-playfair)', fontSize: '1.1rem', fontWeight: '600', color: mode === i ? 'var(--color-text)' : 'var(--color-text-muted)' }}>{m.label}</div>
+            <div style={{ fontSize: '0.65rem', color: 'var(--color-text-placeholder)', marginTop: '0.2rem' }}>min work / break</div>
           </button>
         ))}
       </div>
@@ -80,7 +80,7 @@ export default function Pomodoro() {
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '2rem' }}>
         <div style={{ position: 'relative', width: '200px', height: '200px', marginBottom: '1.5rem' }}>
           <svg width="200" height="200" style={{ transform: 'rotate(-90deg)' }}>
-            <circle cx="100" cy="100" r={radius} fill="none" stroke="#1a1a1d" strokeWidth="4" />
+            <circle cx="100" cy="100" r={radius} fill="none" stroke="var(--color-border)" strokeWidth="4" />
             <circle cx="100" cy="100" r={radius} fill="none"
               stroke={isBreak ? '#4a7c59' : '#c9a96e'}
               strokeWidth="4"
@@ -91,10 +91,10 @@ export default function Pomodoro() {
             />
           </svg>
           <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-            <div style={{ fontFamily: 'var(--font-playfair)', fontSize: '2.75rem', fontWeight: '700', color: isBreak ? '#5d9c70' : '#f5f0e8', lineHeight: 1, fontVariantNumeric: 'tabular-nums' }}>
+            <div style={{ fontFamily: 'var(--font-playfair)', fontSize: '2.75rem', fontWeight: '700', color: isBreak ? '#5d9c70' : 'var(--color-text)', lineHeight: 1, fontVariantNumeric: 'tabular-nums' }}>
               {mins}:{secs}
             </div>
-            <div style={{ fontSize: '0.6rem', color: isBreak ? '#5d9c70' : '#38383f', letterSpacing: '0.1em', textTransform: 'uppercase', marginTop: '0.375rem' }}>
+            <div style={{ fontSize: '0.6rem', color: isBreak ? '#5d9c70' : 'var(--color-text-placeholder)', letterSpacing: '0.1em', textTransform: 'uppercase', marginTop: '0.375rem' }}>
               {isBreak ? 'Break' : `Session ${session}`}
             </div>
           </div>
@@ -117,8 +117,8 @@ export default function Pomodoro() {
           { label: 'Current Mode', value: MODES[mode].name },
         ].map((s, i) => (
           <div key={i} className="card" style={{ padding: '0.875rem 1rem', textAlign: 'center' }}>
-            <div style={{ fontSize: '0.6rem', color: '#38383f', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '0.375rem' }}>{s.label}</div>
-            <div style={{ fontFamily: 'var(--font-playfair)', fontSize: '1.25rem', fontWeight: '700', color: '#f5f0e8' }}>{s.value}</div>
+            <div style={{ fontSize: '0.6rem', color: 'var(--color-text-placeholder)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '0.375rem' }}>{s.label}</div>
+            <div style={{ fontFamily: 'var(--font-playfair)', fontSize: '1.25rem', fontWeight: '700', color: 'var(--color-text)' }}>{s.value}</div>
           </div>
         ))}
       </div>
@@ -126,14 +126,14 @@ export default function Pomodoro() {
       {/* Log */}
       {log.length > 0 && (
         <div className="card" style={{ padding: '1.25rem' }}>
-          <div style={{ fontSize: '0.6rem', color: '#38383f', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '0.875rem' }}>Session Log</div>
+          <div style={{ fontSize: '0.6rem', color: 'var(--color-text-placeholder)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '0.875rem' }}>Session Log</div>
           {log.map((entry, i) => (
-            <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '0.4rem 0', borderBottom: '1px solid #1a1a1d' }}>
+            <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '0.4rem 0', borderBottom: '1px solid var(--color-border-subtle)' }}>
               <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
                 <span className="badge badge-accent" style={{ fontSize: '0.55rem' }}>{entry.type}</span>
-                <span style={{ fontSize: '0.78rem', color: '#8a8a94' }}>{entry.mode}</span>
+                <span style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>{entry.mode}</span>
               </div>
-              <span style={{ fontSize: '0.72rem', color: '#38383f' }}>{entry.time}</span>
+              <span style={{ fontSize: '0.72rem', color: 'var(--color-text-placeholder)' }}>{entry.time}</span>
             </div>
           ))}
         </div>

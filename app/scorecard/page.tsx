@@ -33,6 +33,8 @@ export default function Scorecard() {
     setMetrics(prev => prev.map((m, idx) => idx === i ? { ...m, value: Number(val) || 0 } : m))
   }
 
+  const deletePastWeek = (idx: number) => setPastWeeks(p => p.filter((_, i) => i !== idx))
+
   const logPastWeek = () => {
     if (!newWeek.range) return
     const week: PastWeek = {
@@ -172,7 +174,10 @@ export default function Scorecard() {
               <div key={i} className="card" style={{ padding: '1rem 1.25rem', marginBottom: '0.625rem' }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.625rem' }}>
                   <div style={{ fontSize: '0.82rem', color: 'var(--color-text-muted)' }}>{w.range}</div>
-                  <span className={`badge ${w.pct >= 80 ? 'badge-green' : w.pct >= 40 ? 'badge-yellow' : 'badge-red'}`}>{w.pct}%</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <span className={`badge ${w.pct >= 80 ? 'badge-green' : w.pct >= 40 ? 'badge-yellow' : 'badge-red'}`}>{w.pct}%</span>
+                    <button onClick={() => deletePastWeek(i)} style={{ background: 'transparent', border: 'none', color: 'var(--color-text-placeholder)', cursor: 'pointer', fontSize: '0.85rem', padding: '0 0.2rem', lineHeight: 1 }}>×</button>
+                  </div>
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: '0.5rem' }}>
                   {[

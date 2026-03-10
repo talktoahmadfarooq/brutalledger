@@ -20,9 +20,9 @@
   --color-border-subtle: #e8e3da;
   --color-text: #1a1714;
   --color-text-secondary: #3d3a35;
-  --color-text-muted: #6a6560;
-  --color-text-dim: #8a8582;
-  --color-text-placeholder: #a09890;
+  --color-text-muted: #5a5653;
+  --color-text-dim: #6e6b68;
+  --color-text-placeholder: #8a847e;
   --color-overlay: rgba(245, 240, 232, 0.86);
 
   /* Accent stays same in both modes */
