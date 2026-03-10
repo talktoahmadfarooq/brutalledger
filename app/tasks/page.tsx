@@ -6,7 +6,8 @@ type Status = 'today' | 'active' | 'completed'
 type Project = { id: string; name: string; color: string }
 type Task = {
   id: string; title: string; projectId: string; priority: Priority; status: Status;
-  estimatedMins: number; loggedSecs: number; isTracking: boolean; trackStart: number | null
+  estimatedMins: number; loggedSecs: number; isTracking: boolean; trackStart: number | null;
+  dueDate: string
 }
 
 const PRIORITY_COLORS: Record<Priority, string> = { high: '#c0504d', normal: '#f26419', low: '#55555f' }
@@ -20,6 +21,10 @@ function fmtTime(secs: number): string {
   return `${Math.floor(secs / 3600)}h ${Math.floor((secs % 3600) / 60)}m`
 }
 
+const TODAY = new Date().toISOString().split('T')[0]
+
+const BLANK_TASK = { title: '', projectId: '', priority: 'normal' as Priority, status: 'today' as Status, estimatedMins: '', dueDate: TODAY }
+
 export default function Tasks() {
   const [projects, setProjects] = useState<Project[]>(() => {
     try { return JSON.parse(localStorage.getItem('bl-tasks-projects') || '[]') } catch { return [] }
@@ -30,17 +35,16 @@ export default function Tasks() {
       return saved.map((t: Task) => ({ ...t, isTracking: false, trackStart: null }))
     } catch { return [] }
   })
-  const [filter, setFilter] = useState<Status | 'all'>('today')
+  const [filter, setFilter] = useState<Status | 'all'>('all')
   const [projectFilter, setProjectFilter] = useState('all')
   const [showAddTask, setShowAddTask] = useState(false)
   const [showAddProject, setShowAddProject] = useState(false)
   const [activeTaskId, setActiveTaskId] = useState<string | null>(null)
   const [tick, setTick] = useState(0)
-  const [newTask, setNewTask] = useState({
-    title: '', projectId: '', priority: 'normal' as Priority,
-    status: 'today' as Status, estimatedMins: ''
-  })
+  const [newTask, setNewTask] = useState(BLANK_TASK)
   const [newProject, setNewProject] = useState({ name: '', color: '#f26419' })
+  const [editingTaskId, setEditingTaskId] = useState<string | null>(null)
+  const [editTask, setEditTask] = useState(BLANK_TASK)
 
   useEffect(() => { localStorage.setItem('bl-tasks-projects', JSON.stringify(projects)) }, [projects])
   useEffect(() => { localStorage.setItem('bl-tasks-tasks', JSON.stringify(tasks)) }, [tasks])
@@ -64,7 +68,7 @@ export default function Tasks() {
       trackStart: null,
     }
     setTasks(p => [t, ...p])
-    setNewTask({ title: '', projectId: projects[0]?.id || '', priority: 'normal', status: 'today', estimatedMins: '' })
+    setNewTask({ ...BLANK_TASK, projectId: projects[0]?.id || '' })
     setShowAddTask(false)
   }
 
@@ -74,8 +78,33 @@ export default function Tasks() {
     setProjects(prev => [...prev, p])
     setNewProject({ name: '', color: '#f26419' })
     setShowAddProject(false)
-    // Update default projectId for new tasks
     setNewTask(t => ({ ...t, projectId: p.id }))
+  }
+
+  const startEdit = (task: Task) => {
+    setEditingTaskId(task.id)
+    setEditTask({
+      title: task.title,
+      projectId: task.projectId,
+      priority: task.priority,
+      status: task.status,
+      estimatedMins: task.estimatedMins > 0 ? task.estimatedMins.toString() : '',
+      dueDate: task.dueDate || TODAY,
+    })
+  }
+
+  const saveEdit = () => {
+    if (!editTask.title || !editingTaskId) return
+    setTasks(prev => prev.map(t => t.id === editingTaskId ? {
+      ...t,
+      title: editTask.title,
+      projectId: editTask.projectId || t.projectId,
+      priority: editTask.priority,
+      status: editTask.status,
+      estimatedMins: Number(editTask.estimatedMins) || 0,
+      dueDate: editTask.dueDate,
+    } : t))
+    setEditingTaskId(null)
   }
 
   const toggleTimer = (id: string) => {
@@ -88,7 +117,6 @@ export default function Tasks() {
         }
         return { ...t, isTracking: true, trackStart: now }
       }
-      // Stop any other running timer
       if (t.isTracking) {
         const elapsed = Math.floor((now - (t.trackStart || now)) / 1000)
         return { ...t, isTracking: false, trackStart: null, loggedSecs: t.loggedSecs + elapsed }
@@ -101,6 +129,7 @@ export default function Tasks() {
   const deleteTask = (id: string) => {
     setTasks(prev => prev.filter(t => t.id !== id))
     if (activeTaskId === id) setActiveTaskId(null)
+    if (editingTaskId === id) setEditingTaskId(null)
   }
 
   const deleteProject = (id: string) => {
@@ -110,7 +139,6 @@ export default function Tasks() {
   }
 
   const completeTask = (id: string) => {
-    // If task is running, stop timer first
     const now = Date.now()
     setTasks(prev => prev.map(t => {
       if (t.id === id) {
@@ -137,6 +165,38 @@ export default function Tasks() {
   const totalSecs = tasks.reduce((s, t) => s + getElapsedSecs(t), 0)
   const activeTask = tasks.find(t => t.isTracking)
 
+  const inputRow = (obj: typeof BLANK_TASK, set: (fn: (p: typeof BLANK_TASK) => typeof BLANK_TASK) => void, onSubmit: () => void, onCancel: () => void, submitLabel: string) => (
+    <>
+      <input placeholder="Task title" className="input-dark" style={{ marginBottom: '0.625rem' }} value={obj.title}
+        onChange={e => set(p => ({ ...p, title: e.target.value }))}
+        onKeyDown={e => e.key === 'Enter' && onSubmit()} />
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '0.625rem', marginBottom: '0.75rem' }}>
+        <select className="input-dark" value={obj.projectId} onChange={e => set(p => ({ ...p, projectId: e.target.value }))}>
+          {projects.length === 0 && <option value="">No projects</option>}
+          {projects.map(pr => <option key={pr.id} value={pr.id}>{pr.name}</option>)}
+        </select>
+        <select className="input-dark" value={obj.priority} onChange={e => set(p => ({ ...p, priority: e.target.value as Priority }))}>
+          <option value="high">High</option>
+          <option value="normal">Normal</option>
+          <option value="low">Low</option>
+        </select>
+        <select className="input-dark" value={obj.status} onChange={e => set(p => ({ ...p, status: e.target.value as Status }))}>
+          <option value="today">Today</option>
+          <option value="active">Active</option>
+          <option value="completed">Completed</option>
+        </select>
+        <input type="number" placeholder="Est. minutes" className="input-dark" value={obj.estimatedMins}
+          onChange={e => set(p => ({ ...p, estimatedMins: e.target.value }))} />
+        <input type="date" className="input-dark" value={obj.dueDate}
+          onChange={e => set(p => ({ ...p, dueDate: e.target.value }))} />
+      </div>
+      <div style={{ display: 'flex', gap: '0.5rem' }}>
+        <button onClick={onSubmit} className="btn-primary">{submitLabel}</button>
+        <button onClick={onCancel} className="btn-ghost">Cancel</button>
+      </div>
+    </>
+  )
+
   return (
     <div className="page-bg" style={{ backgroundImage: `url(${BG})` }}>
       <div className="page-overlay">
@@ -162,7 +222,7 @@ export default function Tasks() {
             </div>
             <div style={{ display: 'flex', gap: '0.5rem' }}>
               <button onClick={() => setShowAddProject(true)} className="btn-ghost">+ Project</button>
-              <button onClick={() => setShowAddTask(true)} className="btn-primary">+ Task</button>
+              <button onClick={() => { setShowAddTask(true); setEditingTaskId(null) }} className="btn-primary">+ Task</button>
             </div>
           </div>
 
@@ -205,35 +265,14 @@ export default function Tasks() {
           {showAddTask && (
             <div className="card" style={{ padding: '1.25rem', marginBottom: '1rem' }}>
               <div style={{ fontSize: '0.6rem', color: 'var(--color-text-placeholder)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '0.875rem' }}>New Task</div>
-              <input placeholder="Task title" className="input-dark" style={{ marginBottom: '0.625rem' }} value={newTask.title} onChange={e => setNewTask(p => ({ ...p, title: e.target.value }))}
-                onKeyDown={e => e.key === 'Enter' && addTask()} />
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '0.625rem', marginBottom: '0.75rem' }}>
-                <select className="input-dark" value={newTask.projectId} onChange={e => setNewTask(p => ({ ...p, projectId: e.target.value }))}>
-                  {projects.length === 0 && <option value="">No projects yet</option>}
-                  {projects.map(pr => <option key={pr.id} value={pr.id}>{pr.name}</option>)}
-                </select>
-                <select className="input-dark" value={newTask.priority} onChange={e => setNewTask(p => ({ ...p, priority: e.target.value as Priority }))}>
-                  <option value="high">High</option>
-                  <option value="normal">Normal</option>
-                  <option value="low">Low</option>
-                </select>
-                <select className="input-dark" value={newTask.status} onChange={e => setNewTask(p => ({ ...p, status: e.target.value as Status }))}>
-                  <option value="today">Today</option>
-                  <option value="active">Active</option>
-                </select>
-                <input type="number" placeholder="Est. minutes" className="input-dark" value={newTask.estimatedMins} onChange={e => setNewTask(p => ({ ...p, estimatedMins: e.target.value }))} />
-              </div>
-              <div style={{ display: 'flex', gap: '0.5rem' }}>
-                <button onClick={addTask} className="btn-primary">Add Task</button>
-                <button onClick={() => setShowAddTask(false)} className="btn-ghost">Cancel</button>
-              </div>
+              {inputRow(newTask, setNewTask as (fn: (p: typeof BLANK_TASK) => typeof BLANK_TASK) => void, addTask, () => setShowAddTask(false), 'Add Task')}
             </div>
           )}
 
           {/* Filters */}
           <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '1.25rem', flexWrap: 'wrap' as const }}>
             <div style={{ display: 'flex', gap: '0.375rem' }}>
-              {(['today', 'active', 'completed', 'all'] as const).map(s => (
+              {(['all', 'today', 'active', 'completed'] as const).map(s => (
                 <button key={s} onClick={() => setFilter(s)} style={{
                   padding: '0.3rem 0.75rem', borderRadius: '5px', border: '1px solid',
                   borderColor: filter === s ? '#f2641955' : 'var(--color-border-subtle)',
@@ -251,7 +290,7 @@ export default function Tasks() {
                   background: projectFilter === 'all' ? '#f2641911' : 'transparent',
                   color: projectFilter === 'all' ? '#f26419' : 'var(--color-text-placeholder)',
                   fontSize: '0.65rem', cursor: 'pointer',
-                }}>All</button>
+                }}>All Projects</button>
                 {projects.map(pr => (
                   <div key={pr.id} style={{ display: 'flex', alignItems: 'center', gap: '0.2rem' }}>
                     <button onClick={() => setProjectFilter(pr.id)} style={{
@@ -287,21 +326,34 @@ export default function Tasks() {
               {filtered.map(task => {
                 const project = projects.find(p => p.id === task.projectId)
                 const elapsedSecs = getElapsedSecs(task)
+                const isEditing = editingTaskId === task.id
+
+                if (isEditing) {
+                  return (
+                    <div key={task.id} className="card" style={{ padding: '1.25rem' }}>
+                      <div style={{ fontSize: '0.6rem', color: 'var(--color-text-placeholder)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '0.875rem' }}>Edit Task</div>
+                      {inputRow(editTask, setEditTask as (fn: (p: typeof BLANK_TASK) => typeof BLANK_TASK) => void, saveEdit, () => setEditingTaskId(null), 'Save')}
+                    </div>
+                  )
+                }
+
                 return (
                   <div key={task.id} className="card" style={{ padding: '0.875rem 1.25rem', display: 'flex', alignItems: 'center', gap: '0.875rem', opacity: task.status === 'completed' ? 0.5 : 1 }}>
                     <input type="checkbox" className="checkbox-custom" checked={task.status === 'completed'} onChange={() => completeTask(task.id)} />
                     <div style={{ flex: 1 }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.2rem' }}>
                         <span style={{ fontSize: '0.82rem', color: task.status === 'completed' ? 'var(--color-text-placeholder)' : 'var(--color-text-secondary)', textDecoration: task.status === 'completed' ? 'line-through' : 'none' }}>{task.title}</span>
-                        <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: PRIORITY_COLORS[task.priority], flexShrink: 0 }} />
+                        <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: PRIORITY_COLORS[task.priority], flexShrink: 0 }} title={task.priority} />
                       </div>
-                      <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                      <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' as const }}>
                         {project && <span style={{ fontSize: '0.6rem', background: `${project.color}22`, color: project.color, border: `1px solid ${project.color}33`, borderRadius: '3px', padding: '0.1rem 0.35rem' }}>{project.name}</span>}
+                        {task.dueDate && <span style={{ fontSize: '0.6rem', color: task.dueDate < TODAY && task.status !== 'completed' ? '#c0504d' : 'var(--color-text-placeholder)' }}>{task.dueDate}</span>}
                         {elapsedSecs > 0 && <span style={{ fontSize: '0.65rem', color: 'var(--color-text-placeholder)' }}>{fmtTime(elapsedSecs)} logged</span>}
                         {task.estimatedMins > 0 && <span style={{ fontSize: '0.65rem', color: 'var(--color-text-placeholder)' }}>/ {task.estimatedMins}m est.</span>}
                       </div>
                     </div>
-                    <button onClick={() => deleteTask(task.id)} style={{ background: 'transparent', border: 'none', color: 'var(--color-text-placeholder)', cursor: 'pointer', fontSize: '0.8rem', padding: '0.25rem', flexShrink: 0 }} title="Delete task">×</button>
+                    <button onClick={() => startEdit(task)} style={{ background: 'transparent', border: '1px solid var(--color-border-subtle)', color: 'var(--color-text-placeholder)', cursor: 'pointer', fontSize: '0.6rem', padding: '0.2rem 0.5rem', borderRadius: '4px', flexShrink: 0, letterSpacing: '0.04em' }}>Edit</button>
+                    <button onClick={() => deleteTask(task.id)} style={{ background: '#8b3a3a15', border: '1px solid #8b3a3a33', color: '#c0504d', borderRadius: '4px', padding: '0.2rem 0.5rem', fontSize: '0.6rem', cursor: 'pointer', letterSpacing: '0.04em', flexShrink: 0 }}>Del</button>
                     {task.status !== 'completed' && (
                       <button onClick={() => toggleTimer(task.id)} style={{
                         padding: '0.3rem 0.625rem', borderRadius: '4px', border: '1px solid',
