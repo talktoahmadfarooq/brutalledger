@@ -21,8 +21,15 @@ function fmtTime(secs: number): string {
 }
 
 export default function Tasks() {
-  const [projects, setProjects] = useState<Project[]>([])
-  const [tasks, setTasks] = useState<Task[]>([])
+  const [projects, setProjects] = useState<Project[]>(() => {
+    try { return JSON.parse(localStorage.getItem('bl-tasks-projects') || '[]') } catch { return [] }
+  })
+  const [tasks, setTasks] = useState<Task[]>(() => {
+    try {
+      const saved = JSON.parse(localStorage.getItem('bl-tasks-tasks') || '[]')
+      return saved.map((t: Task) => ({ ...t, isTracking: false, trackStart: null }))
+    } catch { return [] }
+  })
   const [filter, setFilter] = useState<Status | 'all'>('today')
   const [projectFilter, setProjectFilter] = useState('all')
   const [showAddTask, setShowAddTask] = useState(false)
@@ -34,6 +41,9 @@ export default function Tasks() {
     status: 'today' as Status, estimatedMins: ''
   })
   const [newProject, setNewProject] = useState({ name: '', color: '#f26419' })
+
+  useEffect(() => { localStorage.setItem('bl-tasks-projects', JSON.stringify(projects)) }, [projects])
+  useEffect(() => { localStorage.setItem('bl-tasks-tasks', JSON.stringify(tasks)) }, [tasks])
 
   useEffect(() => {
     if (!activeTaskId) return

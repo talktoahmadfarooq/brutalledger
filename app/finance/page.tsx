@@ -1,5 +1,5 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
 type EntryType = 'salary' | 'signl' | 'gift' | 'transfer' | 'other'
 type Income = { id: string; amount: number; type: EntryType; note: string; date: string }
@@ -22,17 +22,33 @@ const PALETTE = ['#7a8fbc', '#5d9c70', '#c4a842', '#9b7fd4', '#8a8a94', '#c0504d
 
 export default function Finance() {
   const [tab, setTab] = useState<'expenses' | 'income' | 'savings'>('expenses')
-  const [incomes, setIncomes] = useState<Income[]>([])
-  const [expenses, setExpenses] = useState<Expense[]>([])
-  const [savings, setSavings] = useState<SavingsOp[]>([])
-  const [savingsTarget, setSavingsTarget] = useState(20000)
-  const [expCategories, setExpCategories] = useState<CustomCat[]>(DEFAULT_EXP_CATS)
+  const [incomes, setIncomes] = useState<Income[]>(() => {
+    try { return JSON.parse(localStorage.getItem('bl-finance-incomes') || '[]') } catch { return [] }
+  })
+  const [expenses, setExpenses] = useState<Expense[]>(() => {
+    try { return JSON.parse(localStorage.getItem('bl-finance-expenses') || '[]') } catch { return [] }
+  })
+  const [savings, setSavings] = useState<SavingsOp[]>(() => {
+    try { return JSON.parse(localStorage.getItem('bl-finance-savings') || '[]') } catch { return [] }
+  })
+  const [savingsTarget, setSavingsTarget] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('bl-finance-target') || '20000') } catch { return 20000 }
+  })
+  const [expCategories, setExpCategories] = useState<CustomCat[]>(() => {
+    try { return JSON.parse(localStorage.getItem('bl-finance-cats') || 'null') || DEFAULT_EXP_CATS } catch { return DEFAULT_EXP_CATS }
+  })
   const [showAddCat, setShowAddCat] = useState(false)
   const [newCat, setNewCat] = useState({ name: '', color: '#f26419' })
 
   const [newExp, setNewExp] = useState({ amount: '', category: 'personal', note: '' })
   const [newInc, setNewInc] = useState({ amount: '', type: 'salary' as EntryType, note: '' })
   const [newSav, setNewSav] = useState({ amount: '', dir: 'in' as 'in' | 'out', reason: '' })
+
+  useEffect(() => { localStorage.setItem('bl-finance-incomes', JSON.stringify(incomes)) }, [incomes])
+  useEffect(() => { localStorage.setItem('bl-finance-expenses', JSON.stringify(expenses)) }, [expenses])
+  useEffect(() => { localStorage.setItem('bl-finance-savings', JSON.stringify(savings)) }, [savings])
+  useEffect(() => { localStorage.setItem('bl-finance-target', JSON.stringify(savingsTarget)) }, [savingsTarget])
+  useEffect(() => { localStorage.setItem('bl-finance-cats', JSON.stringify(expCategories)) }, [expCategories])
 
   const today = new Date().toISOString().split('T')[0]
   const monthExpenses = expenses.reduce((s, e) => s + e.amount, 0)

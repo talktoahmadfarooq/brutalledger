@@ -1,5 +1,5 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
 type SleepEntry = { start: string; end: string; label: string }
 type DayRecord = { entries: SleepEntry[] }
@@ -135,13 +135,17 @@ export default function Sleep() {
   const now = new Date()
 
   // All sleep data per day
-  const [allData, setAllData] = useState<Record<string, DayRecord>>({})
+  const [allData, setAllData] = useState<Record<string, DayRecord>>(() => {
+    try { return JSON.parse(localStorage.getItem('bl-sleep-data') || '{}') } catch { return {} }
+  })
   const [view, setView] = useState<'today' | 'week' | 'month'>('today')
   const [monthRef, setMonthRef] = useState({ year: now.getFullYear(), month: now.getMonth() })
   const [showAddNap, setShowAddNap] = useState(false)
   const [newNap, setNewNap] = useState({ start: '13:00', end: '14:00' })
   const [mainSleep, setMainSleep] = useState({ start: '22:00', end: '06:00' })
   const [mainLogged, setMainLogged] = useState(false)
+
+  useEffect(() => { localStorage.setItem('bl-sleep-data', JSON.stringify(allData)) }, [allData])
 
   const todayEntries = allData[today]?.entries || []
   const total = todayEntries.reduce((sum, e) => sum + calcHours(e.start, e.end), 0)

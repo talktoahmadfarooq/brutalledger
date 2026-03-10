@@ -1,5 +1,5 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
 const HABITS = {
   prayers: [
@@ -63,9 +63,13 @@ export default function Habits() {
   const now = new Date()
 
   // records[dateStr][habitId] = boolean
-  const [records, setRecords] = useState<Record<string, Record<string, boolean>>>({})
+  const [records, setRecords] = useState<Record<string, Record<string, boolean>>>(() => {
+    try { return JSON.parse(localStorage.getItem('bl-habits-records') || '{}') } catch { return {} }
+  })
   const [view, setView] = useState<'today' | 'week' | 'month'>('today')
   const [monthRef, setMonthRef] = useState({ year: now.getFullYear(), month: now.getMonth() })
+
+  useEffect(() => { localStorage.setItem('bl-habits-records', JSON.stringify(records)) }, [records])
 
   const todayRec = records[today] || {}
   const toggle = (id: string, val: boolean) => {

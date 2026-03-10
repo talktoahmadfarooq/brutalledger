@@ -1,5 +1,5 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
 type Category = { id: string; name: string; color: string; custom?: boolean }
 type Block = { id: string; title: string; categoryId: string; date: string; start: string; end: string; notes: string }
@@ -40,12 +40,19 @@ function fmt(d: Date) { return d.toISOString().split('T')[0] }
 export default function Calendar() {
   const [view, setView] = useState<'week' | 'day'>('week')
   const [refDate, setRefDate] = useState(new Date())
-  const [categories, setCategories] = useState<Category[]>(DEFAULT_CATS)
-  const [blocks, setBlocks] = useState<Block[]>([])
+  const [categories, setCategories] = useState<Category[]>(() => {
+    try { return JSON.parse(localStorage.getItem('bl-cal-categories') || 'null') || DEFAULT_CATS } catch { return DEFAULT_CATS }
+  })
+  const [blocks, setBlocks] = useState<Block[]>(() => {
+    try { return JSON.parse(localStorage.getItem('bl-cal-blocks') || '[]') } catch { return [] }
+  })
   const [showModal, setShowModal] = useState(false)
   const [showAddCat, setShowAddCat] = useState(false)
   const [newBlock, setNewBlock] = useState({ title: '', categoryId: 'focus', date: '', start: '09:00', end: '10:00', notes: '' })
   const [newCat, setNewCat] = useState({ name: '', color: '#f26419' })
+
+  useEffect(() => { localStorage.setItem('bl-cal-categories', JSON.stringify(categories)) }, [categories])
+  useEffect(() => { localStorage.setItem('bl-cal-blocks', JSON.stringify(blocks)) }, [blocks])
 
   const weekDates = getMonWeekDates(refDate)
   const today = fmt(new Date())

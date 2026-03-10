@@ -1,5 +1,5 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
 type Status = 'warming' | 'dm_sent' | 'replied' | 'call_booked' | 'proposal_sent' | 'closed_won' | 'closed_lost'
 
@@ -24,12 +24,22 @@ const STATUSES = Object.keys(STATUS_LABELS) as Status[]
 const BG = 'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?auto=format&fit=crop&w=2560&q=80'
 
 export default function Outreach() {
-  const [dms, setDms] = useState(0)
-  const [comments, setComments] = useState(0)
+  const [dms, setDms] = useState<number>(() => {
+    try { return JSON.parse(localStorage.getItem('bl-outreach-dms') || '0') } catch { return 0 }
+  })
+  const [comments, setComments] = useState<number>(() => {
+    try { return JSON.parse(localStorage.getItem('bl-outreach-comments') || '0') } catch { return 0 }
+  })
   const [filter, setFilter] = useState<Status | 'all'>('all')
-  const [prospects, setProspects] = useState<Prospect[]>([])
+  const [prospects, setProspects] = useState<Prospect[]>(() => {
+    try { return JSON.parse(localStorage.getItem('bl-outreach-prospects') || '[]') } catch { return [] }
+  })
   const [showAdd, setShowAdd] = useState(false)
   const [newP, setNewP] = useState({ name: '', url: '', followers: '', niche: '', notes: '' })
+
+  useEffect(() => { localStorage.setItem('bl-outreach-prospects', JSON.stringify(prospects)) }, [prospects])
+  useEffect(() => { localStorage.setItem('bl-outreach-dms', JSON.stringify(dms)) }, [dms])
+  useEffect(() => { localStorage.setItem('bl-outreach-comments', JSON.stringify(comments)) }, [comments])
 
   const addProspect = () => {
     if (!newP.name) return

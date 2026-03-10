@@ -1,5 +1,5 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
 type Pillar = 'contrarian' | 'story' | 'tactical' | 'personal'
 type Post = { id: string; date: string; topic: string; pillar: Pillar; format: string; d7: number; d30: number; comments: number; cta: string }
@@ -11,13 +11,20 @@ const BG = 'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=fo
 
 export default function Content() {
   const [tab, setTab] = useState<'log' | 'kb'>('log')
-  const [posts, setPosts] = useState<Post[]>([])
-  const [kbEntries, setKbEntries] = useState<KBEntry[]>([])
+  const [posts, setPosts] = useState<Post[]>(() => {
+    try { return JSON.parse(localStorage.getItem('bl-content-posts') || '[]') } catch { return [] }
+  })
+  const [kbEntries, setKbEntries] = useState<KBEntry[]>(() => {
+    try { return JSON.parse(localStorage.getItem('bl-content-kb') || '[]') } catch { return [] }
+  })
   const [showAddPost, setShowAddPost] = useState(false)
   const [showAddKB, setShowAddKB] = useState(false)
   const [newPost, setNewPost] = useState({ date: new Date().toISOString().split('T')[0], topic: '', pillar: 'contrarian' as Pillar, format: 'text', d7: '', d30: '', comments: '', cta: '' })
   const [newKB, setNewKB] = useState({ category: KB_CATEGORIES[0], title: '', body: '' })
   const [kbFilter, setKbFilter] = useState('all')
+
+  useEffect(() => { localStorage.setItem('bl-content-posts', JSON.stringify(posts)) }, [posts])
+  useEffect(() => { localStorage.setItem('bl-content-kb', JSON.stringify(kbEntries)) }, [kbEntries])
 
   const addPost = () => {
     if (!newPost.topic) return

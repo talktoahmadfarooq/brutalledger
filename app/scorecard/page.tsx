@@ -1,5 +1,5 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
 const BG = 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&fit=crop&w=2560&q=80'
 
@@ -7,27 +7,40 @@ type PastWeek = {
   range: string; dms: number; posts: number; sleep: string;
   study: string; cmts: number; savings: string; pct: number
 }
+type Metric = { label: string; value: number; target: number; unit: string }
+
+const DEFAULT_METRICS: Metric[] = [
+  { label: 'Outreach DMs', value: 0, target: 50, unit: '' },
+  { label: 'Posts Published', value: 0, target: 3, unit: '' },
+  { label: 'Comments Logged', value: 0, target: 50, unit: '' },
+  { label: 'Avg Sleep', value: 0, target: 7, unit: 'h' },
+  { label: 'Study Minutes', value: 0, target: 315, unit: 'm' },
+  { label: 'Habit Rate', value: 0, target: 100, unit: '%' },
+  { label: 'Deep Work Hours', value: 0, target: 25, unit: 'h' },
+  { label: 'Days Fajr on Time', value: 0, target: 7, unit: '' },
+  { label: 'Days Exercise', value: 0, target: 5, unit: '' },
+]
 
 export default function Scorecard() {
   const [period, setPeriod] = useState<'week' | 'month'>('week')
-  const [avoided, setAvoided] = useState('')
+  const [avoided, setAvoided] = useState(() => {
+    try { return localStorage.getItem('bl-scorecard-avoided') || '' } catch { return '' }
+  })
   const [saved, setSaved] = useState(false)
-  const [pastWeeks, setPastWeeks] = useState<PastWeek[]>([])
+  const [pastWeeks, setPastWeeks] = useState<PastWeek[]>(() => {
+    try { return JSON.parse(localStorage.getItem('bl-scorecard-pastweeks') || '[]') } catch { return [] }
+  })
   const [showLogWeek, setShowLogWeek] = useState(false)
   const [newWeek, setNewWeek] = useState({ range: '', dms: '', posts: '', sleep: '', study: '', cmts: '', savings: '', pct: '' })
 
   // Current week metrics (user fills in manually)
-  const [metrics, setMetrics] = useState([
-    { label: 'Outreach DMs', value: 0, target: 50, unit: '' },
-    { label: 'Posts Published', value: 0, target: 3, unit: '' },
-    { label: 'Comments Logged', value: 0, target: 50, unit: '' },
-    { label: 'Avg Sleep', value: 0, target: 7, unit: 'h' },
-    { label: 'Study Minutes', value: 0, target: 315, unit: 'm' },
-    { label: 'Habit Rate', value: 0, target: 100, unit: '%' },
-    { label: 'Deep Work Hours', value: 0, target: 25, unit: 'h' },
-    { label: 'Days Fajr on Time', value: 0, target: 7, unit: '' },
-    { label: 'Days Exercise', value: 0, target: 5, unit: '' },
-  ])
+  const [metrics, setMetrics] = useState<Metric[]>(() => {
+    try { return JSON.parse(localStorage.getItem('bl-scorecard-metrics') || 'null') || DEFAULT_METRICS } catch { return DEFAULT_METRICS }
+  })
+
+  useEffect(() => { localStorage.setItem('bl-scorecard-pastweeks', JSON.stringify(pastWeeks)) }, [pastWeeks])
+  useEffect(() => { localStorage.setItem('bl-scorecard-metrics', JSON.stringify(metrics)) }, [metrics])
+  useEffect(() => { localStorage.setItem('bl-scorecard-avoided', avoided) }, [avoided])
 
   const updateMetric = (i: number, val: string) => {
     setMetrics(prev => prev.map((m, idx) => idx === i ? { ...m, value: Number(val) || 0 } : m))
